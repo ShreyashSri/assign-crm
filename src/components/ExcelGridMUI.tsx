@@ -1,9 +1,11 @@
-import React, { useState, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Box, Button, Stack, Typography, TextField } from '@mui/material';
 import { 
   DataGrid, 
   GridColDef,
   GridPagination,
+  GridFooterContainer,
+  GridFooterContainerProps,
 } from '@mui/x-data-grid';
 import * as XLSX from 'xlsx';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -14,30 +16,33 @@ interface RowData {
   [key: string]: any;
 }
 
-export function ExcelGridMUI() {
-  const [rows, setRows] = useState<RowData[]>([]);
-  const [columns, setColumns] = useState<GridColDef[]>([]);
-  const [searchText, setSearchText] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
+interface CustomFooterComponentProps extends GridFooterContainerProps {
+  searchText?: string;
+  onSearchTextChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}
 
-  const CustomFooter = useCallback(() => {
-    return (
-      <Box sx={{
-        p: 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        '& .MuiTablePagination-spacer': {
-          display: 'none',
-        },
-      }}>
+function CustomFooterComponent(props: CustomFooterComponentProps) {
+  const { searchText, onSearchTextChange, ...other } = props;
+  return (
+    <GridFooterContainer {...other}>
+      <Box
+        sx={{
+          p: 1,
+          display: 'flex',
+          flexGrow: 1,
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          '& .MuiTablePagination-spacer': {
+            display: 'none',
+          },
+        }}>
         <GridPagination />
         <TextField
           variant="outlined"
           size="small"
           placeholder="Search..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
+          value={searchText || ''}
+          onChange={onSearchTextChange}
           InputProps={{
             startAdornment: (
               <SearchIcon fontSize="small" sx={{ marginRight: 1, color: 'text.secondary' }} />
@@ -45,8 +50,15 @@ export function ExcelGridMUI() {
           }}
         />
       </Box>
-    );
-  }, [searchText]);
+    </GridFooterContainer>
+  );
+}
+
+export function ExcelGridMUI() {
+  const [rows, setRows] = useState<RowData[]>([]);
+  const [columns, setColumns] = useState<GridColDef[]>([]);
+  const [searchText, setSearchText] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -88,6 +100,12 @@ export function ExcelGridMUI() {
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleSearchTextChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setSearchText(event.target.value);
   };
 
   const filteredRows = useMemo(() => {
@@ -149,7 +167,14 @@ export function ExcelGridMUI() {
             },
           }}
           slots={{
-            footer: CustomFooter,
+            footer: CustomFooterComponent,
+          }}
+          slotProps={{
+            footer: {
+              // @ts-ignore
+              searchText: searchText,
+              onSearchTextChange: handleSearchTextChange,
+            },
           }}
         />
       )}
