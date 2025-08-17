@@ -1,6 +1,3 @@
-// src/App.tsx
-
-import React from 'react';
 import { ExcelGridMUI } from './components/ExcelGridMUI';
 import { Box, Typography } from '@mui/material';
 

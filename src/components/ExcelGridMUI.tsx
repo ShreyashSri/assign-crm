@@ -27,6 +27,9 @@ export function ExcelGridMUI() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        '& .MuiTablePagination-spacer': {
+          display: 'none',
+        },
       }}>
         <GridPagination />
         <TextField
